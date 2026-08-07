@@ -1,0 +1,32 @@
+{
+  "entities": {
+    "topics": {
+      "title": "DiscussionTopic",
+      "description": "A forum discussion topic",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "content": { "type": "string" },
+        "image": { "type": "string" },
+        "lens": { "type": "string" },
+        "likes": { "type": "integer" },
+        "repliesCount": { "type": "integer" },
+        "replies": { "type": "array" },
+        "repostsCount": { "type": "integer" },
+        "timestamp": { "type": "integer" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "authorId", "authorName", "content", "timestamp", "createdAt"]
+    }
+  },
+  "firestore": {
+    "topics/{topicId}": {
+      "schema": "topics",
+      "description": "Collection of forum discussion topics"
+    }
+  }
+}

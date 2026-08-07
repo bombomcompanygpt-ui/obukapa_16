@@ -1,0 +1,6 @@
+{
+  "name": "OutBubble",
+  "description": "Platform edukasi literasi digital untuk membantu siswa SMA memahami dan memecahkan echo chamber serta filter bubble.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

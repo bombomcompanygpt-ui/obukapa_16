@@ -1,0 +1,70 @@
+[
+  {
+    "id": "s1",
+    "title": "",
+    "authorId": "uid-budi",
+    "authorName": "Ksatria_BebasBubble 🛡️",
+    "authorAvatar": "Felix",
+    "content": "Capek banget tiap perhelatan pemilu, timeline sosmed isinya adu domba melulu. Berasa warga dipecah belah sama algoritma buzzer 😭. Kayak di-lock dalam gelembung amarah.",
+    "lens": "Kritik",
+    "likes": 18,
+    "repliesCount": 2,
+    "repostsCount": 3,
+    "timestamp": 1785392415501,
+    "createdAt": "2026-07-30T06:20:15.501Z",
+    "replies": [
+      {
+        "id": "sr-1",
+        "authorName": "Pendeteksi_Bias 🧠",
+        "content": "Sama kak, mending ganti tab ke luar gelembung biar pencerahan.",
+        "createdAt": "2026-07-30T07:20:15.501Z",
+        "avatarSeed": "Buster"
+      },
+      {
+        "id": "sr-2",
+        "authorName": "Logika_Murni ⚖️",
+        "content": "Ini contoh nyata Filter Bubble dikombinasiin sama Echo Chamber. Ngeri pol!",
+        "createdAt": "2026-07-30T07:50:15.501Z",
+        "avatarSeed": "Leo"
+      }
+    ]
+  },
+  {
+    "id": "s2",
+    "title": "",
+    "authorId": "uid-lisa",
+    "authorName": "Skeptis_Muda 🔍",
+    "authorAvatar": "Anika",
+    "content": "Guys, coba buktiin filter bubble kalian sekarang! Cari satu kata kunci kontroversial di Google/TikTok pake HP kalian, trus bandingin sama hasil pencarian di HP temen kalian yang beda kubu politik. Hasilnya beneran beda 180 derajat! Kita disuapin kenyataan yang beda.",
+    "lens": "Fakta",
+    "likes": 29,
+    "repliesCount": 1,
+    "repostsCount": 5,
+    "timestamp": 1785403215501,
+    "createdAt": "2026-07-30T09:20:15.501Z",
+    "replies": [
+      {
+        "id": "sr-3",
+        "authorName": "Gelembung_Pecah 🫧",
+        "content": "Gila gw baru coba td sore, hasilnya jomplang banget! Serem juga ya cara kerja mesin rekomendasi.",
+        "createdAt": "2026-07-30T10:20:15.501Z",
+        "avatarSeed": "Daisy"
+      }
+    ]
+  },
+  {
+    "id": "s3",
+    "title": "",
+    "authorId": "uid-outb",
+    "authorName": "OutBubble_Inspirator ✨",
+    "authorAvatar": "Jack",
+    "content": "Pondasi utama negara demokrasi yang sehat di era modern itu bukan cuma kebebasan berpendapat, tapi LITERASI DIGITAL kritis. Tanpa itu, kita cuma jadi bidak catur yang digerakin algoritma pembuat emosi.",
+    "lens": "Harapan",
+    "likes": 42,
+    "repliesCount": 0,
+    "repostsCount": 12,
+    "timestamp": 1785408615501,
+    "createdAt": "2026-07-30T10:50:15.501Z",
+    "replies": []
+  }
+]

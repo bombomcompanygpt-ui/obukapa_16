@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fredoka", sans-serif;
+  --font-brand: "Fredoka", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased bg-[#f8faff] text-[#031466];
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+  }
+  
+  .bubble-shape {
+    @apply rounded-[40px] md:rounded-[60px];
+  }
+  
+  .bubble-button {
+    @apply rounded-full px-6 py-3 font-bold transition-all duration-300;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#b8c9ff] to-[#9ccfff];
+  }
+
+  .theme-dark {
+    @apply bg-[#010d2e] text-white;
+  }
+
+  .theme-light {
+    @apply bg-[#b8c9ff] text-[#031466];
+  }
+}
+
+.prose {
+  @apply text-[#031466]/80 leading-relaxed;
+}
+
+.prose p {
+  @apply mb-4;
+}
+
+.prose strong {
+  @apply text-[#031466] font-bold;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-[#b8c9ff] rounded-full hover:bg-[#9ccfff] transition-colors;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

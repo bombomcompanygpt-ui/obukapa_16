@@ -11,6 +11,18 @@ interface Reply {
   avatarSeed?: string;
 }
 
+interface ChatMessage {
+  id: string;
+  channel: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  content: string;
+  image?: string;
+  timestamp: number;
+  reactions?: Record<string, number>;
+}
+
 interface DiscussionTopic {
   id: string;
   title: string;
@@ -27,6 +39,50 @@ interface DiscussionTopic {
   timestamp: number;
   createdAt?: string;
 }
+
+// Initial default chat messages
+const fallbackChatMessages: ChatMessage[] = [
+  {
+    id: "m-1",
+    channel: "obrolan-santai",
+    authorId: "uid-system",
+    authorName: "Bubul 🫧 (Bot OutBubble)",
+    authorAvatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Bubul",
+    content: "Halo kawan-kawan OutBubble! Selamat datang di Ruang Obrolan Langsung. Silakan berbagi cerita, bertukar ide, atau berkenalan disini ya! 💬",
+    timestamp: Date.now() - 3600000 * 3,
+    reactions: { "👋": 5, "❤️": 3 }
+  },
+  {
+    id: "m-2",
+    channel: "obrolan-santai",
+    authorId: "uid-budi",
+    authorName: "Ksatria_Nalar 🛡️",
+    authorAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+    content: "Halo semuanya! Keren banget fitur obrolan ini, sekarang kita bisa diskusi langsung tanpa tunggu waktu postingan.",
+    timestamp: Date.now() - 3600000 * 2,
+    reactions: { "👍": 4, "🔥": 2 }
+  },
+  {
+    id: "m-3",
+    channel: "literasi-digital",
+    authorId: "uid-lisa",
+    authorName: "Skeptis_Muda 🔍",
+    authorAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aria",
+    content: "Ada yang pernah coba verifikasi foto hoaks pake Google Reverse Image Search? Efektif banget buat cek rekayasa foto!",
+    timestamp: Date.now() - 3600000 * 1,
+    reactions: { "💡": 6, "🔥": 3 }
+  },
+  {
+    id: "m-4",
+    channel: "luar-gelembung",
+    authorId: "uid-outb",
+    authorName: "Pendeteksi_Bias 🧠",
+    authorAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Leo",
+    content: "Kunci utama keluar dari gelembung informasi adalah mau membaca sudut pandang lawan bicara dengan tenang. Gimana menurut kalian?",
+    timestamp: Date.now() - 1800000,
+    reactions: { "⚖️": 4, "👏": 2 }
+  }
+];
 
 // Initial default topics for digital literacy & filter bubble discussions
 const fallbackTopics: DiscussionTopic[] = [
@@ -105,14 +161,36 @@ try {
 
 // Local file fallback backup
 const DATA_FILE = path.join(process.cwd(), "data", "forum_topics.json");
+const CHAT_FILE = path.join(process.cwd(), "data", "chat_messages.json");
 const STATS_FILE = path.join(process.cwd(), "data", "forum_stats.json");
 let localMemoryTopics: DiscussionTopic[] = [];
+let localMemoryChat: ChatMessage[] = [];
 let localTotalVisitors = 0;
 const localPresenceMap: Record<string, number> = {};
 
 if (!fs.existsSync(path.dirname(DATA_FILE))) {
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
 }
+
+function loadLocalChatFile(): ChatMessage[] {
+  try {
+    if (fs.existsSync(CHAT_FILE)) {
+      const content = fs.readFileSync(CHAT_FILE, "utf-8");
+      const data = JSON.parse(content);
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch (e) {}
+  return [...fallbackChatMessages];
+}
+
+function saveLocalChatFile(messages: ChatMessage[]) {
+  localMemoryChat = messages;
+  try {
+    fs.writeFileSync(CHAT_FILE, JSON.stringify(messages, null, 2), "utf-8");
+  } catch (e) {}
+}
+
+localMemoryChat = loadLocalChatFile();
 
 function loadLocalStats(): number {
   try {
@@ -190,6 +268,32 @@ async function getTopicsFromDatabase(): Promise<DiscussionTopic[]> {
     }
   }
   return localMemoryTopics;
+}
+
+async function getChatFromDatabase(): Promise<ChatMessage[]> {
+  if (firestoreDb) {
+    try {
+      const snapshot = await firestoreDb.collection("chat_messages").get();
+      if (!snapshot.empty) {
+        const msgs: ChatMessage[] = [];
+        snapshot.forEach(doc => {
+          msgs.push(doc.data() as ChatMessage);
+        });
+        msgs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        saveLocalChatFile(msgs);
+        return msgs;
+      } else {
+        for (const msg of fallbackChatMessages) {
+          await firestoreDb.collection("chat_messages").doc(msg.id).set(msg);
+        }
+        saveLocalChatFile(fallbackChatMessages);
+        return fallbackChatMessages;
+      }
+    } catch (err) {
+      handleFirestoreError(err);
+    }
+  }
+  return localMemoryChat;
 }
 
 // Get stats (Total Visitors & Live Active Visitors)
@@ -284,7 +388,7 @@ app.post("/api/forum/ping", async (req: any, res: any) => {
   return res.json({ success: true, ...stats });
 });
 
-// POST create new discussion topic (Saved globally to Firestore)
+// POST create new discussion topic (Saved globally)
 app.post("/api/forum/topics", async (req: any, res: any) => {
   const topic = req.body.topic || req.body;
   if (!topic || (!topic.content && !topic.image)) {
@@ -292,10 +396,10 @@ app.post("/api/forum/topics", async (req: any, res: any) => {
   }
 
   const newTopic: DiscussionTopic = {
-    id: topic.id || `t-${Date.now()}`,
+    id: topic.id || `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     title: topic.title || "",
     authorId: topic.authorId || "anon",
-    authorName: topic.authorName || "Anonymous",
+    authorName: topic.authorName || "Warga OutBubble 🫧",
     authorAvatar: topic.authorAvatar || "Felix",
     content: topic.content || "",
     image: topic.image || undefined,
@@ -308,6 +412,10 @@ app.post("/api/forum/topics", async (req: any, res: any) => {
     createdAt: topic.createdAt || new Date().toISOString()
   };
 
+  // Update local memory and file immediately
+  localMemoryTopics = [newTopic, ...localMemoryTopics.filter(t => t.id !== newTopic.id)];
+  saveLocalFile(localMemoryTopics);
+
   if (firestoreDb) {
     try {
       await firestoreDb.collection("topics").doc(newTopic.id).set(newTopic);
@@ -315,9 +423,6 @@ app.post("/api/forum/topics", async (req: any, res: any) => {
       handleFirestoreError(err);
     }
   }
-
-  const updated = [newTopic, ...localMemoryTopics.filter(t => t.id !== newTopic.id)];
-  saveLocalFile(updated);
 
   return res.status(201).json(newTopic);
 });
@@ -488,6 +593,110 @@ app.delete("/api/forum/topics/:id/replies/:replyId", async (req: any, res: any) 
     return t;
   });
   saveLocalFile(updated);
+
+  return res.json({ success: true });
+});
+
+// GET live chat messages
+app.get("/api/forum/chat/messages", async (req: any, res: any) => {
+  try {
+    const channel = req.query.channel;
+    let msgs = await getChatFromDatabase();
+    if (channel) {
+      msgs = msgs.filter(m => m.channel === channel);
+    }
+    return res.json(msgs);
+  } catch (e) {
+    return res.json(localMemoryChat);
+  }
+});
+
+// POST new live chat message
+app.post("/api/forum/chat/messages", async (req: any, res: any) => {
+  const { channel, authorId, authorName, authorAvatar, content, image } = req.body;
+  if (!content && !image) {
+    return res.status(400).json({ error: "Missing chat content or image" });
+  }
+
+  const newMsg: ChatMessage = {
+    id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    channel: channel || "obrolan-santai",
+    authorId: authorId || "anon",
+    authorName: authorName || "Warga OutBubble",
+    authorAvatar: authorAvatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Guest",
+    content: content || "",
+    image: image || undefined,
+    timestamp: Date.now(),
+    reactions: {}
+  };
+
+  // Update local memory immediately
+  localMemoryChat = [...localMemoryChat.filter(m => m.id !== newMsg.id), newMsg];
+  saveLocalChatFile(localMemoryChat);
+
+  if (firestoreDb) {
+    try {
+      await firestoreDb.collection("chat_messages").doc(newMsg.id).set(newMsg);
+    } catch (err) {
+      handleFirestoreError(err);
+    }
+  }
+
+  return res.status(201).json(newMsg);
+});
+
+// POST react to live chat message
+app.post("/api/forum/chat/messages/:id/react", async (req: any, res: any) => {
+  const { id } = req.params;
+  const { emoji } = req.body;
+  if (!emoji) return res.status(400).json({ error: "Missing emoji" });
+
+  let updatedReactions: Record<string, number> = {};
+
+  if (firestoreDb) {
+    try {
+      const docRef = firestoreDb.collection("chat_messages").doc(id);
+      const doc = await docRef.get();
+      if (doc.exists) {
+        const data = doc.data() as ChatMessage;
+        const rx = data.reactions || {};
+        rx[emoji] = (rx[emoji] || 0) + 1;
+        updatedReactions = rx;
+        await docRef.update({ reactions: rx });
+      }
+    } catch (err) {
+      handleFirestoreError(err);
+    }
+  }
+
+  const updated = localMemoryChat.map(m => {
+    if (m.id === id) {
+      const rx = { ...(m.reactions || {}) };
+      rx[emoji] = (rx[emoji] || 0) + 1;
+      updatedReactions = rx;
+      return { ...m, reactions: rx };
+    }
+    return m;
+  });
+  saveLocalChatFile(updated);
+
+  return res.json({ success: true, reactions: updatedReactions });
+});
+
+// DELETE chat message
+app.delete("/api/forum/chat/messages/:id", async (req: any, res: any) => {
+  const { id } = req.params;
+
+  if (firestoreDb) {
+    try {
+      await firestoreDb.collection("chat_messages").doc(id).delete();
+    } catch (err) {
+      handleFirestoreError(err);
+    }
+  }
+
+  const updated = localMemoryChat.filter(m => m.id !== id);
+  saveLocalChatFile(updated);
 
   return res.json({ success: true });
 });
